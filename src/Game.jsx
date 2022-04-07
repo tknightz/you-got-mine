@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import "./game.css";
 
 function isValidIdx(idx, size) {
@@ -76,53 +76,70 @@ function generateMineMap(numberOfMine, numberOfCellARow) {
       if (isMineExist(x - 1, y - 1)) value++;
       if (isMineExist(x - 1, y + 1)) value++;
 
-      map[x][y] = value;
+      map[x][y] = value || "";
     }
   }
 
   return map;
 }
 
-function Game({ size, numberOfMines }) {
+function Game({ size, level }) {
   const [showMap, setShowMap] = useState({});
   const [flagMap, setFlagMap] = useState({});
   const [gameOver, setGameOver] = useState(false);
-  const [win, setWin] = useState(false);
+  const [gameWin, setGameWin] = useState(false);
+  const [gridSize, setGridSize] = useState(size);
+  const [gameLevel, setGameLevel] = useState(level);
+  const [toggleReset, setToggleReset] = useState(false);
 
-  const [mineMap, _] = useState(() => {
-    const mineMap = generateMineMap(numberOfMines, size);
-    return mineMap;
-  });
+  const numberOfMines = useMemo(
+    () => Math.floor((gridSize * gridSize) / (7 - gameLevel - 1)),
+    [gridSize, gameLevel]
+  );
+  let mineMap = useMemo(
+    () => generateMineMap(numberOfMines, gridSize),
+    [numberOfMines, gridSize, toggleReset]
+  );
 
-  const showIdx = function (rowIdx, colIdx, isFirst = true) {
+  // I set width of cell is 50px and gaps is 5px => size * 55 = gridWidth
+  const gridWidth = gridSize * 55;
+
+  const exploreCell = function (rowIdx, colIdx) {
     let traceMap = { ...showMap };
 
-    function recursiveExplore(rowIdx, colIdx, isFirst = false) {
+    function recursiveExplore(rowIdx, colIdx) {
       const idx = rowIdx + "" + colIdx;
 
-      if (!(isValidIdx(rowIdx, size) && isValidIdx(colIdx, size))) return;
+      if (!(isValidIdx(rowIdx, gridSize) && isValidIdx(colIdx, gridSize)))
+        return;
       if (traceMap[idx]) return;
 
       traceMap[idx] = true;
 
       if (mineMap[rowIdx][colIdx] == "x") {
         console.log("You got Mine!!!");
-        if (isFirst) {
-          setGameOver(true);
-          return;
-        }
-      } else if (mineMap[rowIdx][colIdx] === 0) {
-        recursiveExplore(rowIdx - 1, colIdx);
-        recursiveExplore(rowIdx + 1, colIdx);
+        setGameOver(true);
+        return;
+      }
+
+      if (mineMap[rowIdx][colIdx] === "") {
         recursiveExplore(rowIdx, colIdx - 1);
         recursiveExplore(rowIdx, colIdx + 1);
+
+        recursiveExplore(rowIdx + 1, colIdx);
+        recursiveExplore(rowIdx + 1, colIdx - 1);
+        recursiveExplore(rowIdx + 1, colIdx + 1);
+
+        recursiveExplore(rowIdx - 1, colIdx);
+        recursiveExplore(rowIdx - 1, colIdx - 1);
+        recursiveExplore(rowIdx - 1, colIdx + 1);
       }
     }
 
-    recursiveExplore(rowIdx, colIdx, isFirst);
+    recursiveExplore(rowIdx, colIdx);
 
-    if (size * size - Object.keys(traceMap).length === numberOfMines)
-      setWin(true);
+    if (gridSize * gridSize - Object.keys(traceMap).length === numberOfMines)
+      setGameWin(true);
 
     setShowMap(traceMap);
   };
@@ -134,12 +151,64 @@ function Game({ size, numberOfMines }) {
     setFlagMap((prev) => ({ ...prev, [idx]: value }));
   };
 
+  const reset = () => {
+    setGameOver(false);
+    setGameWin(false);
+    setShowMap({});
+    setFlagMap({});
+    setToggleReset((prev) => !prev);
+  };
+
+  // Event handler
+  const onSelectLevel = (e) => {
+    const _level = parseInt(e.target.value);
+    setGameLevel(() => {
+      reset();
+      return _level;
+    });
+  };
+
+  const onSelectSize = (e) => {
+    const _size = parseInt(e.target.value);
+    setGridSize(_size);
+    reset();
+  };
+
   return (
     <div className="App">
       <h1>💥💥 MineSweeper 💥💥</h1>
-      <div className="main">
+
+      <div className="controller">
+        <div className="selection-group">
+          <label htmlFor="game-level-selection">Level: </label>
+          <select id="game-level-selection" onChange={onSelectLevel}>
+            <option value="1">Easy</option>
+            <option value="2">Medium</option>
+            <option value="3">Hard</option>
+          </select>
+        </div>
+
+        <div className="selection-group">
+          <label htmlFor="grid-size-selection">Grid size: </label>
+          <select id="grid-size-selection" onChange={onSelectSize}>
+            <option value="6">6x6</option>
+            <option value="8">8x8</option>
+            <option value="10">10x10</option>
+          </select>
+        </div>
+
+        <button onClick={reset}>↻</button>
+      </div>
+
+      <div className="info">
+        <span>
+          You got <b>{numberOfMines}</b> 💥 to sweep.
+        </span>
+      </div>
+
+      <div className="main" style={{ width: `${gridWidth}px` }}>
         {gameOver && <div className="result game-over">Game over!!!</div>}
-        {win && <div className="result game-win">You win!!!</div>}
+        {gameWin && <div className="result game-win">You win!!!</div>}
         <div className="game">
           {mineMap.map((row, rowIdx) =>
             row.map((cell, colIdx) => {
@@ -147,10 +216,10 @@ function Game({ size, numberOfMines }) {
               return (
                 <Cell
                   key={idx}
-                  isShow={showMap[idx] === true}
+                  isShow={showMap[idx] === true || gameOver}
                   hasFlag={flagMap[idx]}
                   hasMine={cell === "x"}
-                  onShow={() => showIdx(rowIdx, colIdx, true)}
+                  onShow={() => exploreCell(rowIdx, colIdx)}
                   onFlag={() => putFlag(idx)}
                   value={cell !== "x" ? cell : "💥"}
                 />
