@@ -11,7 +11,10 @@ function Cell({ isShow, hasFlag, hasMine, value, onShow, onFlag }) {
   const flagged = hasFlag && !isShow ? "flagged" : "";
   const cssValue = !hasMine && isShow ? `c${value}` : "";
 
-  const cls = [showedMineCls, showed, cssValue, flagged];
+  const className = ["cell", showedMineCls, showed, cssValue, flagged]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
 
   const rightClick = (e) => {
     e.preventDefault();
@@ -19,11 +22,7 @@ function Cell({ isShow, hasFlag, hasMine, value, onShow, onFlag }) {
   };
 
   return (
-    <div
-      className={`cell ${cls.join(" ")}`}
-      onClick={onShow}
-      onContextMenu={rightClick}
-    >
+    <div className={className} onClick={onShow} onContextMenu={rightClick}>
       {isShow && <>{value}</>}
     </div>
   );

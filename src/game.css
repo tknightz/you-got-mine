@@ -12,12 +12,17 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.App {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
 .game {
-  width: 450px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-around;
+  justify-content: center;
   gap: 5px;
 }
 
@@ -40,6 +45,7 @@ body {
 
 .showed {
   opacity: .6;
+  background: #A4FFC5;
 }
 
 .showed:hover {
@@ -52,11 +58,7 @@ h1 {
 }
 
 .mine {
-  background: orange;
-}
-
-.c0 {
-  background: #A4FFC5;
+  background: #ff1100;
 }
 
 .c1 {
@@ -77,6 +79,9 @@ h1 {
 
 .main {
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .result {
@@ -96,15 +101,12 @@ h1 {
   text-shadow: 2px 2px #ff9800;
 }
 
-.flagged {
-}
-
 .flagged::after {
   content: " 🚩";
 }
 
 .game-win {
-  animation: win 2s linear 2s infinite alternate;
+  animation: win .2s infinite alternate;
 }
 
 .game-over {
@@ -122,3 +124,35 @@ h1 {
   }
 }
 
+
+.controller {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  font-size: small;
+  font-weight: bold;
+}
+
+
+.selection-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+button {
+  font-size: large;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  color: #4395c8;
+}
+
+.info {
+  margin: 10px 0;
+  font-size: small;
+}
