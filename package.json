@@ -1,6 +1,7 @@
 {
   "name": "myminesweeper",
   "private": true,
+  "homepage": "https://tknightz.github.io/you-got-mine",
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
