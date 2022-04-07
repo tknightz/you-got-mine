@@ -192,7 +192,7 @@ function Game({ size, level }) {
           <label htmlFor="grid-size-selection">Grid size: </label>
           <select id="grid-size-selection" onChange={onSelectSize}>
             <option value="6">6x6</option>
-            <option value="8">8x8</option>
+            <option value="8" selected={true}>8x8</option>
             <option value="10">10x10</option>
           </select>
         </div>
